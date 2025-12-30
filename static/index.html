@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outfit AI - Smart Fashion Combination</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Onboarding Overlay -->
+    <div id="onboarding" class="onboarding-overlay">
+        <div class="onboarding-container">
+            <div class="onboarding-step active" data-step="1">
+                <div class="step-icon">👗</div>
+                <h2>Welcome to Outfit AI!</h2>
+                <p>Upload your photo and let AI suggest perfect color combinations</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33%"></div>
+                </div>
+            </div>
+            
+            <div class="onboarding-step" data-step="2">
+                <div class="step-icon">🎨</div>
+                <h2>Color Analysis</h2>
+                <p>We automatically detect dominant colors in your outfit photo</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 66%"></div>
+                </div>
+            </div>
+            
+            <div class="onboarding-step" data-step="3">
+                <div class="step-icon">✨</div>
+                <h2>AI Recommendations</h2>
+                <p>Artificial intelligence provides you with the most harmonious color combinations</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <button class="skip-btn" onclick="skipOnboarding()">Skip</button>
+            <button class="next-btn" onclick="nextStep()">Continue →</button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="logo">🎨 Outfit AI</h1>
+            <p class="tagline">Your Smart Fashion Combination Assistant</p>
+            <button class="show-onboarding-btn" onclick="showOnboarding()" title="Show Onboarding Again">ℹ️</button>
+        </header>
+
+        <main class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-card">
+                    <div class="upload-icon">📸</div>
+                    <h2>Upload Your Photo</h2>
+                    <p>Select your outfit photo and let AI suggest perfect combinations</p>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                        <div class="upload-placeholder">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>Drag photo here or click to upload</p>
+                            <span class="upload-hint">PNG, JPG or JPEG (Max 10MB)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="api-status" id="apiStatus">
+                        <span class="status-indicator"></span>
+                        <span class="status-text">Checking API key...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading-section hidden" id="loadingSection">
+                <div class="loader">
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                </div>
+                <h3>Analyzing your photo...</h3>
+                <p>Detecting colors and preparing AI recommendations</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section hidden" id="resultsSection">
+                <div class="image-preview">
+                    <img id="previewImage" src="" alt="Uploaded photo">
+                </div>
+
+                <!-- Current Outfit Analysis -->
+                <div class="current-outfit" id="currentOutfitSection">
+                    <h3>📸 Current Outfit Analysis</h3>
+                    <div class="outfit-info" id="outfitInfo"></div>
+                </div>
+
+                <!-- Compatible Items (for single item) -->
+                <div class="compatible-items-section hidden" id="compatibleItemsSection">
+                    <h3>🎯 Compatible Items & Color Suggestions</h3>
+                    <div class="compatible-items-list" id="compatibleItemsList"></div>
+                </div>
+
+                <!-- Outfit Assessment (for combinations) -->
+                <div class="outfit-assessment-section hidden" id="outfitAssessmentSection">
+                    <h3>📊 Outfit Assessment</h3>
+                    <div class="assessment-content" id="assessmentContent"></div>
+                </div>
+
+                <!-- Color Analysis Section -->
+                <div class="color-analysis-section" id="colorAnalysisSection">
+                    <h3>🎨 Detailed Color Analysis</h3>
+                    <div class="color-analysis-content" id="colorAnalysisContent"></div>
+                </div>
+
+                <!-- Item Color Suggestions (only for combinations) -->
+                <div class="item-color-suggestions" id="itemColorSuggestionsSection">
+                    <h3>✨ Color Suggestions for Outfit Items</h3>
+                    <div class="item-suggestions-list" id="itemSuggestionsList"></div>
+                </div>
+
+                <button class="new-upload-btn" onclick="resetApp()">Upload New Photo</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
+
+
