@@ -1,7 +1,5 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, request, jsonify, abort, send_from_directory
+from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from PIL import Image
@@ -14,19 +12,11 @@ from io import BytesIO
 
 load_dotenv()
 
-app = FastAPI(title="Kombin Önerici AI")
+app = Flask(__name__, static_folder='static')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# CORS
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Google Gemini API key kontrolü
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -378,22 +368,33 @@ RETURN ONLY IN JSON FORMAT:
         }
 
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root():
+@app.route("/")
+def read_root():
     """Ana sayfa"""
-    with open("static/index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return send_from_directory('static', 'index.html')
 
 
-@app.post("/api/upload")
-async def upload_image(file: UploadFile = File(...)):
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    """Static dosyaları sun"""
+    return send_from_directory('static', filename)
+
+
+@app.route("/api/upload", methods=["POST"])
+def upload_image():
     """Photo upload and AI analysis"""
     try:
+        # Dosya kontrolü
+        if 'file' not in request.files:
+            abort(400, description="No file uploaded")
+        
+        file = request.files['file']
+        if file.filename == '':
+            abort(400, description="No file selected")
+        
         # Dosyayı kaydet
         file_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(file_path, "wb") as f:
-            content = await file.read()
-            f.write(content)
+        file.save(file_path)
         
         # Baskın renkleri çıkar (görselleştirme için)
         dominant_colors = extract_dominant_colors(file_path)
@@ -446,7 +447,7 @@ async def upload_image(file: UploadFile = File(...)):
         if not ai_analysis.get("is_single_item", False):
             response_data["item_color_suggestions"] = ai_analysis.get("item_color_suggestions", [])
         
-        return JSONResponse(response_data)
+        return jsonify(response_data)
         
     except Exception as e:
         import traceback
@@ -457,22 +458,17 @@ async def upload_image(file: UploadFile = File(...)):
             error_message = "JSON parse error: AI response not in expected format. Please try again."
         elif "JSON" in error_message or "json" in error_message:
             error_message = "JSON parse error: AI response could not be processed. Please try again."
-        raise HTTPException(status_code=500, detail=f"Hata: {error_message}")
+        abort(500, description=f"Hata: {error_message}")
 
 
-@app.get("/api/check-api-key")
-@app.post("/api/check-api-key")
-async def check_api_key():
+@app.route("/api/check-api-key", methods=["GET", "POST"])
+def check_api_key():
     """Check API key"""
-    return JSONResponse({
+    return jsonify({
         "has_api_key": bool(GEMINI_API_KEY),
         "message": "Gemini API key available" if GEMINI_API_KEY else "API key not found. Add GEMINI_API_KEY to .env file."
     })
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
+    app.run(host="0.0.0.0", port=8000, debug=True)
